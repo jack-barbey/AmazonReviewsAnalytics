@@ -34,12 +34,13 @@ def create_table(new_table_name, data_gz_file):
         reviewerName TEXT,
         helpfulVotes INT NOT NULL,
         totalVotes INT NOT NULL,
-        reviewText TEXT NOT NULL,
+        reviewText TEXT,
         overall INT NOT NULL,
-        summary TEXT NOT NULL,
+        summary TEXT,
         unixReviewTime INT NOT NULL,
-        reviewTime TEXT NOT NULL,
-        PRIMARY KEY (reviewerID, productID) )''')
+        reviewTime TEXT,
+        PRIMARY KEY (reviewerID, productID) 
+        )''')
 
     insert_query = "INSERT INTO "+new_table_name+" VALUES (?,?,?,?,?,?,?,?,?,?)"
 
