@@ -27,9 +27,8 @@ def create_table(new_table_name, data_gz_file):
     db = sqlite3.connect("./reviews_db.sqlite")
     c = db.cursor()
 
-    table_name = "instrument_reviews"
-    c.execute("DROP TABLE IF EXISTS " + table_name)
-    c.execute("CREATE TABLE " + table_name + ''' (
+    c.execute("DROP TABLE IF EXISTS " + new_table_name)
+    c.execute("CREATE TABLE " + new_table_name + ''' (
         reviewerID TEXT NOT NULL,
         productID TEXT NOT NULL,
         reviewerName TEXT,
@@ -42,10 +41,10 @@ def create_table(new_table_name, data_gz_file):
         reviewTime TEXT NOT NULL,
         PRIMARY KEY (reviewerID, productID) )''')
 
-    insert_query = "INSERT INTO instrument_reviews VALUES (?,?,?,?,?,?,?,?,?,?)"
+    insert_query = "INSERT INTO "+new_table_name+" VALUES (?,?,?,?,?,?,?,?,?,?)"
 
-    json_columns = ["reviewerID", "asin", "reviewerName", "helpful", "reviewText",
-                    "overall", "summary", "unixReviewTime", "reviewTime"]
+    json_columns = ["reviewerID", "asin", "reviewerName", "helpful",
+        "reviewText", "overall", "summary", "unixReviewTime", "reviewTime"]
 
     for review in parse(data_gz_file):
         vals = []
@@ -57,7 +56,7 @@ def create_table(new_table_name, data_gz_file):
                 else:
                     vals.append(review[col_name])
             else:
-                vals.append("") # some reviewerName values are missing
+                vals.append(None) # some reviewerName values are missing
         c.execute(insert_query, tuple(vals))
 
     c.close()
