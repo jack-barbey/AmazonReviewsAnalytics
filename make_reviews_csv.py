@@ -1,7 +1,7 @@
 # This file converts review data into a csv file
 
-# Usage: python3 <.json.gz file with review data>" <new csv filename> 
-#             <columns>
+# Usage: python3 make_reviews_csv.py <.json.gz file with review data>"
+#            <new csv filename> <columns>
 #         column options: reviewerID, productID, reviewerName, helpfulVotes,
 #         totalVotes, reviewText, overall, summary, unixReviewTime, reviewTime
 
@@ -15,9 +15,9 @@ def parse(path):
     Parse json.gz file. Code taken from creator of our dataset:
     http://jmcauley.ucsd.edu/data/amazon/links.html
     '''
-    g = gzip.open(path, 'r')
-    for l in g:
-        yield eval(l)
+    with gzip.open(path, 'r') as g:
+        for l in g:
+            yield eval(l)
 
 def make_csv(data_gz_file, csv_filename, columns):
     with open(csv_filename, "w") as csvfile:
