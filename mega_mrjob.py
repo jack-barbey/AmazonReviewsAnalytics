@@ -1,5 +1,5 @@
 from mrjob.job import MRJob
-import json
+import ujson as json # loads file faster than regular json library
 import gzip
 import sqlite3
 from time import time
@@ -29,7 +29,7 @@ class Mega_MRJob(MRJob):
   def mapper(self, _, f1_str):
     begin_mapper = time()
     # 1st review info from reviews file
-    f1_line = eval(f1_str) # convert string to dictionary
+    f1_line = json.loads(f1_str) # convert string to dictionary
     reviewerID1, productID1, ID1 = get_ID(f1_line)
     if ID1:
       helpfulVotes1, totalVotes1, reviewText1, overall1, summary1, \
@@ -47,8 +47,8 @@ class Mega_MRJob(MRJob):
 
       # Re-open each time in order to start at top of file
       self.f2 = gzip.open("medium_instruments2.json.gz", "r")
-      for f2_str in self.f2:
-        f2_line = eval(f2_str)
+      for f2_bytes in self.f2:
+        f2_line = json.loads(f2_bytes)
         reviewerID2, productID2, ID2 = get_ID(f2_line)
         # only compare pairs once, don't compare review to itself
         if ID2:
@@ -62,7 +62,7 @@ class Mega_MRJob(MRJob):
             cossimReview = get_cossim(reviewText1, reviewText2)
             cossimSummary = get_cossim(summary1, summary2)
 
-            # # Yield results - can be any pair of variables desired
+            # Yield results - can be any pair of variables desired
             if None not in [cossimReview, overallDiff]:
               yield [1, cossimReview, abs(overallDiff)], 1
             if None not in [helpfulVotesDiff, totalVotesDiff]:
@@ -106,7 +106,7 @@ def diff(val1, val2):
 def get_cossim(str1, str2):
   if str1 == None or str2 == None:
     return None
-  return random.randint(0, 10)
+  return 1
 
 def get_ID(f_line):
   if "reviewerID" in f_line:
