@@ -28,6 +28,7 @@ class Mega_MRJob(MRJob):
         self.c = self.sqlite_conn.cursor()
 
     def mapper(self, _, f1_str):
+        begin_mapper = time()
         # 1st review info from reviews file
         f1_line = eval(f1_str) # convert string to dictionary
         reviewerID1, productID1, ID1 = get_ID(f1_line)
@@ -60,15 +61,16 @@ class Mega_MRJob(MRJob):
                 cossimReview = get_cossim(reviewText1, reviewText2)
                 cossimSummary = get_cossim(summary1, summary2)
 
-                # Yield results - can be any pair of variables desired
+                # # Yield results - can be any pair of variables desired
                 if None not in [cossimReview, overallDiff]:
-                    yield ["cosine similarity vs. overall diff", 
-                            cossimReview, abs(overallDiff)], 1
+                    yield [1, cossimReview, abs(overallDiff)], 1
                 if None not in [helpfulVotesDiff, totalVotesDiff]:
-                    yield ["helpful votes diff vs. overall votes diff",
-                            helpfulVotesDiff, totalVotesDiff], 1
+                    yield [2, helpfulVotesDiff, totalVotesDiff], 1
 
         self.f2.close() # close, then re-open later at top of file
+        end_mapper = time()
+        print("time elapsed (one loop):", end_mapper - begin_mapper, "seconds")
+
 
     def combiner(self, obs, counts):
         yield obs, sum(counts)
@@ -142,6 +144,7 @@ def get_attrs(f_line):
 
 if __name__ == '__main__':
     begin = time()
+    print("begin time:", begin)
     Mega_MRJob.run()                
     end = time()
     print("time elapsed:", end - begin, "seconds")
