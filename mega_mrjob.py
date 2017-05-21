@@ -27,7 +27,6 @@ class Mega_MRJob(MRJob):
     self.c = self.sqlite_conn.cursor()
 
   def mapper(self, _, f1_str):
-    begin_mapper = time()
     # 1st review info from reviews file
     f1_line = eval(f1_str) # convert string to dictionary
     reviewerID1, productID1, ID1 = get_ID(f1_line)
@@ -47,8 +46,8 @@ class Mega_MRJob(MRJob):
 
       # Re-open each time in order to start at top of file
       self.f2 = gzip.open("medium_instruments2.json.gz", "r")
-      for f2_str in self.f2:
-        f2_line = eval(f2_str)
+      for f2_bytes in self.f2:
+        f2_line = json.loads(f2_bytes)
         reviewerID2, productID2, ID2 = get_ID(f2_line)
         # only compare pairs once, don't compare review to itself
         if ID2:
@@ -61,6 +60,20 @@ class Mega_MRJob(MRJob):
             timeGap = diff(unixReviewTime1, unixReviewTime2)
             cossimReview = get_cossim(reviewText1, reviewText2)
             cossimSummary = get_cossim(summary1, summary2)
+            # print(price1)
+            # if price1:
+              # price2 = single_value_query(self.c, "price",
+              #     "products_instruments", productID2)
+              # # print(price2)
+              # if price2:
+              #   if price1 > price2:
+              #     pass
+              #     yield [3, int(100*price2/price1), overallDiff], 1
+              #   else:
+              #     pass
+              #     yield [3, int(100*price1/price2), -overallDiff], 1
+                  # interpretation: [3, 120, 2] means the product that was
+                  # 20% more expensive got 2 more points overall in the review
 
             # # Yield results - can be any pair of variables desired
             if None not in [cossimReview, overallDiff]:
@@ -69,8 +82,6 @@ class Mega_MRJob(MRJob):
               yield [2, helpfulVotesDiff, totalVotesDiff], 1
 
       self.f2.close() # close, then re-open later at top of file
-      end_mapper = time()
-      # print("time elapsed (one loop):", end_mapper - begin_mapper, "seconds")
 
 
   def combiner(self, obs, counts):
@@ -84,8 +95,11 @@ class Mega_MRJob(MRJob):
 def single_value_query(c, column, table, productID):
   result_cursor = c.execute("SELECT " + column + " FROM " + table + 
     " WHERE productID = (?);", (productID,))
-  rv = result_cursor.fetchone()[0]
-  return rv
+  rv = result_cursor.fetchone()
+  if rv:
+    return rv[0]
+  else:
+    return None
 
 # Use to get list of other products that were also viewed/bought with product
 def related_product_query(c, column, table, productID):
