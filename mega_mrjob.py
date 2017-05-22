@@ -2,8 +2,13 @@ from mrjob.job import MRJob
 import json
 import gzip
 import sqlite3
-from time import time
 import random
+import math
+import numpy as np
+import pickle
+import re
+from stop_words import get_stop_words
+from time import time
 
 class Mega_MRJob(MRJob):
   ''' 
@@ -25,6 +30,10 @@ class Mega_MRJob(MRJob):
     # make sqlite3 database available to mapper
     self.sqlite_conn = sqlite3.connect(self.options.database)
     self.c = self.sqlite_conn.cursor()
+    stop_words, num_words, all_words_dict = load_obj("all_words_dict.pkl")
+    self.stop_words = stop_words
+    self.num_words = num_words
+    self.all_words_dict = all_words_dict
 
   def mapper(self, _, f1_str):
     # 1st review info from reviews file
@@ -44,8 +53,12 @@ class Mega_MRJob(MRJob):
       boughtTogether1 = related_product_query(self.c, "boughtTogetherID",
           "bought_together_instruments", productID1)
 
+      # Creates the two vectors which will be filled by the review text
+      r1_vec = [0] * self.num_words
+      r2_vec = [0] * self.num_words
+
       # Re-open each time in order to start at top of file
-      self.f2 = gzip.open("medium_instruments2.json.gz", "r")
+      self.f2 = gzip.open("small_instruments2.json.gz", "r")
       for f2_bytes in self.f2:
         f2_line = json.loads(f2_bytes)
         reviewerID2, productID2, ID2 = get_ID(f2_line)
@@ -56,10 +69,10 @@ class Mega_MRJob(MRJob):
               unixReviewTime2, reviewTime2 = get_attrs(f2_line)
             helpfulVotesDiff = diff(helpfulVotes1, helpfulVotes2)
             totalVotesDiff = diff(totalVotes1, totalVotes2)
-            overallDiff = diff(overall1, overall2)
+            overallDiff = int(diff(overall1, overall2))
             timeGap = diff(unixReviewTime1, unixReviewTime2)
-            cossimReview = get_cossim(reviewText1, reviewText2)
-            cossimSummary = get_cossim(summary1, summary2)
+            cossimReview = cos_dist(reviewText1, reviewText2, r1_vec, r2_vec,
+                self.stop_words, self.all_words_dict, self.num_words)
             # print(price1)
             # if price1:
               # price2 = single_value_query(self.c, "price",
@@ -75,7 +88,7 @@ class Mega_MRJob(MRJob):
                   # interpretation: [3, 120, 2] means the product that was
                   # 20% more expensive got 2 more points overall in the review
 
-            # # Yield results - can be any pair of variables desired
+            # Yield results - can be any pair of variables desired
             if None not in [cossimReview, overallDiff]:
               yield [1, cossimReview, abs(overallDiff)], 1
             if None not in [helpfulVotesDiff, totalVotesDiff]:
@@ -90,6 +103,49 @@ class Mega_MRJob(MRJob):
   def reducer(self, obs, counts):
     yield obs, sum(counts)
 
+
+# Loads the dictionary mapping all words to an index in the vector
+def load_obj(name):
+    stop_words = set(get_stop_words('en'))
+    replace_chars = {".", "?", "!", "\\", "(", ")", ",", "/", "*", "&", "#",
+    ";", ":", "-", "_", "=", "@", "[", "]", "+", "$", "~", "'", '"', "`", '\\\"'}
+    replace_chars = set(re.escape(k) for k in replace_chars)
+    global pattern
+    pattern = re.compile("|".join(replace_chars))
+
+    with open(name, 'rb') as f:
+        obj = pickle.load(f)
+        num_words = obj[0]
+        all_words_dict = obj[1]
+
+    return stop_words, num_words, all_words_dict
+
+def cos_dist(r1, r2, r1_vec, r2_vec, stop_words, all_words_dict, num_words):
+    '''Computes the ln of the cosine distance given two strings of reviews'''
+    #r1 = "thiiiis tonelab snow tonight "
+    #r2 = "tonight thiiiis tonelab snow"
+    for rev, vec in zip([r1,r2],[r1_vec, r2_vec]):
+        chars_removed = pattern.sub(" ", rev)
+        words_list = chars_removed.lower().split()
+
+        for word in words_list:
+            if word in stop_words: continue
+            index_in_vector = all_words_dict[word]
+            vec[index_in_vector] += 1
+
+    prod = np.dot(r1_vec, r2_vec)
+    len1 = math.sqrt(np.dot(r1_vec, r1_vec))
+    len2 = math.sqrt(np.dot(r2_vec, r2_vec))
+
+    r1_vec = [0] * num_words
+    r2_vec = [0] * num_words
+
+    # cos_dist = prod/(len1*len2)
+    cos_dist = int(100 * prod/(len1*len2))
+    # print(r1, "\n", r2)
+    # print(cos_dist)
+    # print('\n\n')
+    return cos_dist
 
 # Use to get price, title, brand, etc. of a product
 def single_value_query(c, column, table, productID):
@@ -115,12 +171,6 @@ def diff(val1, val2):
   if val1 == None or val2 == None:
     return None
   return val2 - val1
-
-# Placeholder for cosine similarity function
-def get_cossim(str1, str2):
-  if str1 == None or str2 == None:
-    return None
-  return random.randint(0, 10)
 
 def get_ID(f_line):
   if "reviewerID" in f_line:
