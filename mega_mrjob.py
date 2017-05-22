@@ -140,11 +140,7 @@ def cos_dist(r1, r2, r1_vec, r2_vec, stop_words, all_words_dict, num_words):
     r1_vec = [0] * num_words
     r2_vec = [0] * num_words
 
-    # cos_dist = prod/(len1*len2)
     cos_dist = int(100 * prod/(len1*len2))
-    # print(r1, "\n", r2)
-    # print(cos_dist)
-    # print('\n\n')
     return cos_dist
 
 # Use to get price, title, brand, etc. of a product
