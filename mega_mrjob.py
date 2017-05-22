@@ -2,7 +2,6 @@ from mrjob.job import MRJob
 import json
 import gzip
 import sqlite3
-import random
 import math
 import numpy as np
 import pickle
@@ -13,8 +12,8 @@ from time import time
 class Mega_MRJob(MRJob):
   ''' 
   Class to test the concepts of dynamically accessing pairs
-  Usage: python3 first_job.py <file1.json.gz> --file <file2.json.gz>
-    --database <metadata_db.sqlite>
+  Usage: python3 mega_mrjob.py <file1.json.gz> --file <file2.json.gz>
+    --database <metadata_db.sqlite> --file all_words_dict.pkl
   file2.json.gz will be accessible by all runners
 
   Note: change gzip.open() line to match file2.json.gz filename
@@ -37,7 +36,7 @@ class Mega_MRJob(MRJob):
 
   def mapper(self, _, f1_str):
     # 1st review info from reviews file
-    f1_line = eval(f1_str) # convert string to dictionary
+    f1_line = json.loads(f1_str) # convert string to dictionary
     reviewerID1, productID1, ID1 = get_ID(f1_line)
     if ID1:
       helpfulVotes1, totalVotes1, reviewText1, overall1, summary1, \
@@ -73,22 +72,20 @@ class Mega_MRJob(MRJob):
             timeGap = diff(unixReviewTime1, unixReviewTime2)
             cossimReview = cos_dist(reviewText1, reviewText2, r1_vec, r2_vec,
                 self.stop_words, self.all_words_dict, self.num_words)
-            # print(price1)
+
+            # Yield results - can be any pair of variables desired
+
             # if price1:
               # price2 = single_value_query(self.c, "price",
               #     "products_instruments", productID2)
-              # # print(price2)
               # if price2:
               #   if price1 > price2:
-              #     pass
               #     yield [3, int(100*price2/price1), overallDiff], 1
               #   else:
-              #     pass
               #     yield [3, int(100*price1/price2), -overallDiff], 1
                   # interpretation: [3, 120, 2] means the product that was
                   # 20% more expensive got 2 more points overall in the review
 
-            # Yield results - can be any pair of variables desired
             if None not in [cossimReview, overallDiff]:
               yield [1, cossimReview, abs(overallDiff)], 1
             if None not in [helpfulVotesDiff, totalVotesDiff]:
