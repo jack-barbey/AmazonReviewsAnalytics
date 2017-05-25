@@ -8,6 +8,7 @@ import pickle
 import re
 from stop_words import get_stop_words
 from time import time
+from time import sleep
 import sqlite3
 
 
@@ -37,6 +38,7 @@ class Mega_MRJob(MRJob):
     self.all_words_dict = all_words_dict
 
 
+
   def mapper(self, _, f1_str):
     begin_mapper = time()
     # 1st review info from reviews file
@@ -57,9 +59,11 @@ class Mega_MRJob(MRJob):
           "bought_together_instruments", productID1)
 
 
-      # Creates the two vectors which will be filled by the review text
-      r1_vec = [0] * self.num_words
-      r2_vec = [0] * self.num_words
+      # Creates two lists of tuples that will be overwriten each time
+      r1_vec = []
+      r2_vec = []
+      r1_dict = {}
+      r2_dict = {}
 
       # Re-open each time in order to start at top of file
       self.f2 = gzip.open("instruments_very_small2.json.gz", "r")
@@ -75,9 +79,10 @@ class Mega_MRJob(MRJob):
             totalVotesDiff = diff(totalVotes1, totalVotes2)
             overallDiff = diff(overall1, overall2)
             timeGap = diff(unixReviewTime1, unixReviewTime2)
-            cossimReview = cos_dist(reviewText1, reviewText2, r1_vec, r2_vec,
+
+            cossimReview = cos_dist(reviewText1, reviewText2, r1_vec, r2_vec, r1_dict, r2_dict,
                 self.stop_words, self.all_words_dict, self.num_words)
-            #cossimSummary = get_cossim(summary1, summary2)
+
 
             # # Yield results - can be any pair of variables desired
             if None not in [cossimReview, overallDiff]:
@@ -114,28 +119,50 @@ def load_obj(name):
     return stop_words, num_words, all_words_dict
 
 
-def cos_dist(r1, r2, r1_vec, r2_vec, stop_words, all_words_dict, num_words):
+def cos_dist(r1, r2, r1_vec, r2_vec, r1_dict, r2_dict, stop_words, all_words_dict, num_words):
     '''Computes the ln of the cosine distance given two strings of reviews'''
-    #r1 = "thiiiis tonelab snow tonight "
-    #r2 = "tonight thiiiis tonelab snow"
-    for rev, vec in zip([r1,r2],[r1_vec, r2_vec]):
+
+    for rev, vec, dic in zip([r1,r2],[r1_vec, r2_vec], [r1_dict, r2_dict]):
         chars_removed = pattern.sub(" ", rev)
         words_list = chars_removed.lower().split()
 
         for word in words_list:
             if word in stop_words: continue
-            index_in_vector = all_words_dict[word]
-            vec[index_in_vector] += 1
+            index_of_word = all_words_dict[word]
+            vec.append((index_of_word, 1))
+            if index_of_word not in dic:
+                dic[index_of_word] = 0
+            dic[index_of_word] += 1
 
-    prod = np.dot(r1_vec, r2_vec)
-    len1 = math.sqrt(np.dot(r1_vec, r1_vec))
-    len2 = math.sqrt(np.dot(r2_vec, r2_vec))
+    prod = calc_dot_product(r1_vec, r2_dict)
+    len1 = math.sqrt(calc_dot_product(r1_vec, r1_dict))
+    len2 = math.sqrt(calc_dot_product(r2_vec, r2_dict))
 
-    r1_vec = [0] * num_words
-    r2_vec = [0] * num_words
+    r1_vec = []
+    r2_vec = []
+    r1_dict = {}
+    r2_dict = {}
 
-    
+    print(r1)
+    print(r2)
+    print(prod/(len1*len2))
     return prod/(len1*len2)
+
+def calc_dot_product(vector, dic):
+    '''Given a vector and a dictionary for either two different reviews or the same review,
+    this functions returns the dot product between the two reviews
+    -Vector of the form: [(index1, count), (index2, count)]
+    -Dic of the form {index1: count, index2: count}
+
+    '''
+    dot_product = 0
+
+    for index, count in vector:
+        if index in dic:
+            dot_product += dic[index]*count
+
+    return dot_product
+
 
 # Use to get price, title, brand, etc. of a product
 def single_value_query(c, column, table, productID):
