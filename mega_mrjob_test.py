@@ -40,7 +40,7 @@ class Mega_MRJob(MRJob):
   def mapper(self, _, f1_str):
 
     # 1st review info from reviews file
-    f1_line = eval(f1_str) # convert string to dictionary
+    f1_line = json.loads(f1_str) # convert string to dictionary
     reviewerID1, productID1, ID1 = get_ID(f1_line)
     if ID1:
       helpfulVotes1, totalVotes1, reviewText1, overall1, summary1, \
@@ -65,7 +65,7 @@ class Mega_MRJob(MRJob):
 
       # Re-open each time in order to start at top of file
       self.f2 = gzip.open("instruments_very_small2.json.gz", "r")
-      for f2_str in self.f2:
+      for f2_bytes in self.f2:
         f2_line = json.loads(f2_bytes)
         reviewerID2, productID2, ID2 = get_ID(f2_line)
         # only compare pairs once, don't compare review to itself
