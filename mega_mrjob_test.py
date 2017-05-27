@@ -38,7 +38,7 @@ class Mega_MRJob(MRJob):
 
 
   def mapper(self, _, f1_str):
-    begin_mapper = time()
+
     # 1st review info from reviews file
     f1_line = eval(f1_str) # convert string to dictionary
     reviewerID1, productID1, ID1 = get_ID(f1_line)
@@ -66,7 +66,7 @@ class Mega_MRJob(MRJob):
       # Re-open each time in order to start at top of file
       self.f2 = gzip.open("instruments_very_small2.json.gz", "r")
       for f2_str in self.f2:
-        f2_line = eval(f2_str)
+        f2_line = json.loads(f2_bytes)
         reviewerID2, productID2, ID2 = get_ID(f2_line)
         # only compare pairs once, don't compare review to itself
         if ID2:
@@ -81,16 +81,36 @@ class Mega_MRJob(MRJob):
             cossimReview = cos_dist(reviewText1, reviewText2, r1_vec, r2_vec, r1_dict, r2_dict,
                 self.stop_words, self.all_words_dict, self.num_words)
 
+            # Yield results - can be any pair of variables desired
+
+            #   interpretation: [3, 120, 2] means the product that was
+            #   20% more expensive got 2 more points overall in the review
+
 
             # # Yield results - can be any pair of variables desired
+            # Yields difference in rating
             if None not in [cossimReview, overallDiff]:
-              yield [1, cossimReview, abs(overallDiff)], 1
-            if None not in [helpfulVotesDiff, totalVotesDiff]:
-              yield [2, helpfulVotesDiff, totalVotesDiff], 1
+                yield [1, cossimReview, abs(overallDiff)], 1
+            # Difference in helpful votes
+            if None not in [cossimReview, helpfulVotesDiff]:
+                yield [2, cossimReview, abs(helpfulVotesDiff)], 1
+            # Difference in total votes
+            if None not in [cossimReview, totalVotesDiff]:
+                yield [3, cossimReview, abs(totalVotesDiff)], 1
+            # Difference in time
+            if None not in [cossimReview, timeGap]:
+                yield [4, cossimReview, abs(timeGap)], 1
+            if price1:
+                price2 = single_value_query(self.c, "price", "products_instruments", productID2)
+                if price2:
+                    if price1 > price2:
+                        yield [5, int(100*price2/price1), overallDiff], 1
+                    else:
+                        yield [5, int(100*price1/price2), -overallDiff], 1
+
 
       self.f2.close() # close, then re-open later at top of file
-      end_mapper = time()
-      # print("time elapsed (one loop):", end_mapper - begin_mapper, "seconds")
+
 
 
   def combiner(self, obs, counts):
@@ -231,7 +251,5 @@ def get_attrs(f_line):
 
 
 if __name__ == '__main__':
-  begin = time()
+
   Mega_MRJob.run()
-  end = time()
-  print("time elapsed:", end - begin, "seconds")
