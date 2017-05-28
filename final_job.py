@@ -38,6 +38,7 @@ class Mega_MRJob(MRJob):
 
 
   def mapper(self, _, f1_str):
+
     # 1st review info from reviews file
     f1_line = json.loads(f1_str) # convert string to dictionary
     reviewerID1, productID1, ID1 = get_ID(f1_line)
@@ -64,8 +65,8 @@ class Mega_MRJob(MRJob):
 
       # Re-open each time in order to start at top of file
       self.f2 = gzip.open("instruments_very_small2.json.gz", "r")
-      for f2_str in self.f2:
-        f2_line = json.loads(f2_str.decode())
+      for f2_bytes in self.f2:
+        f2_line = json.loads(f2_bytes.decode())
         reviewerID2, productID2, ID2 = get_ID(f2_line)
         # only compare pairs once, don't compare review to itself
         if ID2:
@@ -77,19 +78,43 @@ class Mega_MRJob(MRJob):
             overallDiff = diff(overall1, overall2)
             timeGap = diff(unixReviewTime1, unixReviewTime2)
 
-            cossimReview = cos_dist(reviewText1, reviewText2, r1_vec, r2_vec, r1_dict, r2_dict,
-                self.stop_words, self.all_words_dict, self.num_words)
+            cossimReview = round(cos_dist(reviewText1, reviewText2, r1_vec, r2_vec, r1_dict, r2_dict,
+                self.stop_words, self.all_words_dict, self.num_words), 2)
+
+
 
 
             # # Yield results - can be any pair of variables desired
+            # Yields difference in rating
             if None not in [cossimReview, overallDiff]:
-              yield [1, cossimReview, abs(overallDiff)], 1
-            if None not in [helpfulVotesDiff, totalVotesDiff]:
-              yield [2, helpfulVotesDiff, totalVotesDiff], 1
+                yield [1, cossimReview, abs(overallDiff)], 1
+            # Difference in helpful votes
+            if None not in [cossimReview, helpfulVotesDiff]:
+                yield [2, cossimReview, abs(helpfulVotesDiff)], 1
+            # Difference in total votes
+            if None not in [cossimReview, totalVotesDiff]:
+                yield [3, cossimReview, abs(totalVotesDiff)], 1
+            # Difference in time
+            if None not in [cossimReview, timeGap]:
+                yield [4, cossimReview, abs(timeGap)], 1
+            if price1:
+                price2 = single_value_query(self.c, "price", "products_instruments", productID2)
+                if price2:
+                    if price1 > price2:
+                        yield [5, int(100*price1/price2), overallDiff], 1
+                        yield [6, cossimReview, int(100*price1/price2)], 1
+                    else:
+                        yield [5, int(100*price2/price1), -overallDiff], 1
+                        yield [6, cossimReview, int(100*price2/price1)], 1
+
+            
+
+            # interpretation: [3, 120, 2] means the product that was
+            # 20% more expensive got 2 more points overall in the review
+
 
       self.f2.close() # close, then re-open later at top of file
 
-      # print("time elapsed (one loop):", end_mapper - begin_mapper, "seconds")
 
 
   def combiner(self, obs, counts):
@@ -140,9 +165,7 @@ def cos_dist(r1, r2, r1_vec, r2_vec, r1_dict, r2_dict, stop_words, all_words_dic
     r1_dict = {}
     r2_dict = {}
 
-    print(r1)
-    print(r2)
-    print(prod/(len1*len2))
+
     return prod/(len1*len2)
 
 def calc_dot_product(vector, dic):
