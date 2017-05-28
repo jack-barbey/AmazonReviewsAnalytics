@@ -4,7 +4,7 @@ import gzip
 import math
 import pickle
 import re
-from stop_words import get_stop_words
+
 
 import sqlite3
 
@@ -63,7 +63,7 @@ class Mega_MRJob(MRJob):
       r2_dict = {}
 
       # Re-open each time in order to start at top of file
-      self.f2 = gzip.open("instruments_very_small2.json.gz", "r")
+      self.f2 = gzip.open("instruments_full2.json.gz", "r")
       for f2_bytes in self.f2:
         f2_line = json.loads(f2_bytes.decode())
         reviewerID2, productID2, ID2 = get_ID(f2_line)
@@ -106,7 +106,7 @@ class Mega_MRJob(MRJob):
                         yield [5, int(100*price2/price1), -overallDiff], 1
                         yield [6, cossimReview, int(100*price2/price1)], 1
 
-            
+
 
             # interpretation: [3, 120, 2] means the product that was
             # 20% more expensive got 2 more points overall in the review
@@ -125,7 +125,7 @@ class Mega_MRJob(MRJob):
 
 # Loads the dictionary mapping all words to an index in the vector
 def load_obj(name):
-    stop_words = set(get_stop_words('en'))
+    stop_words = {'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', "aren't", 'as', 'at', 'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by', "can't", 'cannot', 'could', "couldn't", 'did', "didn't", 'do', 'does', "doesn't", 'doing', "don't", 'down', 'during', 'each', 'few', 'for', 'from', 'further', 'had', "hadn't", 'has', "hasn't", 'have', "haven't", 'having', 'he', "he'd", "he'll", "he's", 'her', 'here', "here's", 'hers', 'herself', 'him', 'himself', 'his', 'how', "how's", 'i', "i'd", "i'll", "i'm", "i've", 'if', 'in', 'into', 'is', "isn't", 'it', "it's", 'its', 'itself', "let's", 'me', 'more', 'most', "mustn't", 'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'ought', 'our', 'ours', 'ourselves', 'out', 'over', 'own', 'same', "shan't", 'she', "she'd", "she'll", "she's", 'should', "shouldn't", 'so', 'some', 'such', 'than', 'that', "that's", 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', "there's", 'these', 'they', "they'd", "they'll", "they're", "they've", 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', "wasn't", 'we', "we'd", "we'll", "we're", "we've", 'were', "weren't", 'what', "what's", 'when', "when's", 'where', "where's", 'which', 'while', 'who', "who's", 'whom', 'why', "why's", 'with', "won't", 'would', "wouldn't", 'you', "you'd", "you'll", "you're", "you've", 'your', 'yours', 'yourself', 'yourselves'}
     replace_chars = {".", "?", "!", "\\", "(", ")", ",", "/", "*", "&", "#",
     ";", ":", "-", "_", "=", "@", "[", "]", "+", "$", "~", "'", '"', "`", '\\\"'}
     replace_chars = set(re.escape(k) for k in replace_chars)
