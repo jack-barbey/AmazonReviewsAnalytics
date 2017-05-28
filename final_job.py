@@ -2,7 +2,6 @@ from mrjob.job import MRJob
 import json
 import gzip
 import math
-import numpy as np
 import pickle
 import re
 from stop_words import get_stop_words
