@@ -7,7 +7,7 @@ stop_words = set(get_stop_words('en'))
 
 # Code inspired by http://stackoverflow.com/questions/6116978/python-replace-multiple-strings
 # Removes punctuation to be replaced by spaces, good for fixing typos such as "the.end"
-replace_chars = {".", "?", "!", "\\", "(", ")", ",", "/", "*", "&", "#",
+replace_chars = {".", "?", "!", "\\", "(", ")", ",", "/", "*", "&", "#", "\"",
                 ";", ":", "-", "_", "=", "@", "[", "]", "+", "$", "~", "'", "`", '\\\"'}
 replace_chars = set(re.escape(k) for k in replace_chars)
 pattern = re.compile("|".join(replace_chars))
