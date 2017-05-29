@@ -2,6 +2,8 @@ import math
 import numpy as np
 import pickle
 
+
+
 def create_dictionary_all_words(infile, outfile):
     '''
     Using a file exported by mapreduce, this function maps each word used in every
@@ -16,9 +18,13 @@ def create_dictionary_all_words(infile, outfile):
     with open(infile, "r") as f:
         n = 0
         for line in f:
-            word = line.split()[0].replace("\"", "")
-            all_words_dict[word] = n
-            n += 1
+            word, count = line.split()
+            count = int(count)
+            if count > 1:
+                word = line.split()[0].replace("\"", "")
+                print(word, count)
+                all_words_dict[word] = n
+                n += 1
 
     # http://stackoverflow.com/questions/19201290/how-to-save-a-dictionary-to-a-file
     with open(outfile, 'wb' ) as f:
@@ -28,4 +34,4 @@ def create_dictionary_all_words(infile, outfile):
 
     return all_words_dict, n+1
 if __name__ == '__main__':
-    create_dictionary_all_words("words.txt", "all_words_dict.pkl")
+    create_dictionary_all_words("words_with_counts.txt", "vocab.pkl")

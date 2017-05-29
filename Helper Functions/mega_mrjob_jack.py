@@ -10,7 +10,6 @@ from stop_words import get_stop_words
 from time import time
 import sqlite3
 
-
 class Mega_MRJob(MRJob):
   '''
   Class to test the concepts of dynamically accessing pairs
@@ -118,6 +117,7 @@ def cos_dist(r1, r2, r1_vec, r2_vec, stop_words, all_words_dict, num_words):
     '''Computes the ln of the cosine distance given two strings of reviews'''
     #r1 = "thiiiis tonelab snow tonight "
     #r2 = "tonight thiiiis tonelab snow"
+    t1 = time()
     for rev, vec in zip([r1,r2],[r1_vec, r2_vec]):
         chars_removed = pattern.sub(" ", rev)
         words_list = chars_removed.lower().split()
@@ -126,15 +126,17 @@ def cos_dist(r1, r2, r1_vec, r2_vec, stop_words, all_words_dict, num_words):
             if word in stop_words: continue
             index_in_vector = all_words_dict[word]
             vec[index_in_vector] += 1
-
+    t2 = time()
     prod = np.dot(r1_vec, r2_vec)
+    t3 = time()
+    print("{} s {} s".format((t2-t1),(t3-t2)))
     len1 = math.sqrt(np.dot(r1_vec, r1_vec))
     len2 = math.sqrt(np.dot(r2_vec, r2_vec))
 
     r1_vec = [0] * num_words
     r2_vec = [0] * num_words
 
-    
+
     return prod/(len1*len2)
 
 # Use to get price, title, brand, etc. of a product

@@ -4,7 +4,10 @@ import gzip
 import math
 import pickle
 import re
+from scipy.sparse import csc_matrix
+from collections import Counter
 from time import time
+
 
 
 import sqlite3
@@ -14,7 +17,7 @@ class Mega_MRJob(MRJob):
   '''
   Class to test the concepts of dynamically accessing pairs
   Usage: python3 first_job.py <file1.json.gz> --file <file2.json.gz>
-    --database <metadata_db.sqlite> --file all_words_dict.pkl
+    --database <metadata_db.sqlite> --file vocab.pkl
   file2.json.gz will be accessible by all runners
 
   Note: change gzip.open() line to match file2.json.gz filename
@@ -31,8 +34,6 @@ class Mega_MRJob(MRJob):
     self.sqlite_conn = sqlite3.connect(self.options.database)
     self.c = self.sqlite_conn.cursor()
     self.num_words, self.all_words_dict = load_obj("vocab.pkl")
-
-
 
 
   def mapper(self, _, f1_str):
@@ -55,15 +56,15 @@ class Mega_MRJob(MRJob):
           "bought_together_instruments", productID1)
 
 
-      # Creates two lists of tuples that will be overwriten each time
-      r1_vec = []
-      r2_vec = []
-      r1_dict = {}
-      r2_dict = {}
+      # Creates sparse vectors for the dot product calculation
+      r1_vec = csc_matrix((self.num_words, 1))
+      r2_vec = csc_matrix((self.num_words, 1))
+      print(r1_vec)
+
 
       # Re-open each time in order to start at top of file
       self.f2 = gzip.open("instruments_very_small2.json.gz", "r")
-      t1 = time()
+      t1 =time()
       for f2_bytes in self.f2:
         f2_line = json.loads(f2_bytes.decode())
         reviewerID2, productID2, ID2 = get_ID(f2_line)
@@ -77,7 +78,7 @@ class Mega_MRJob(MRJob):
             overallDiff = diff(overall1, overall2)
             timeGap = diff(unixReviewTime1, unixReviewTime2)
 
-            cossimReview = round(cos_dist(reviewText1, reviewText2, r1_vec, r2_vec, r1_dict, r2_dict,
+            cossimReview = round(cos_dist(reviewText1, reviewText2, r1_vec, r2_vec,
                  self.all_words_dict, self.num_words), 2)
 
 
@@ -114,11 +115,7 @@ class Mega_MRJob(MRJob):
 
       self.f2.close() # close, then re-open later at top of file
       t2 = time()
-      print()
-      print (t2 - t1)
-      print()
-      r1_vec = []
-      r1_dict = {}
+      print(t2-t1)
 
 
 
@@ -145,63 +142,33 @@ def load_obj(name):
     return num_words, all_words_dict
 
 
-
-def cos_dist(r1, r2, r1_vec, r2_vec, r1_dict, r2_dict, all_words_dict, num_words):
+def cos_dist(r1, r2, r1_vec, r2_vec, all_words_dict, num_words):
     '''Computes the ln of the cosine distance given two strings of reviews'''
 
-    # Only resets review 1's vector and dictionary when mrjob moves onto the next review
-    # If r1_vec is not populated, then this is the first pass for the review 1
-    if r1_vec == []:
-        for rev, vec, dic in zip([r1,r2],[r1_vec, r2_vec], [r1_dict, r2_dict]):
-            chars_removed = pattern.sub(" ", rev)
-            words_list = chars_removed.lower().split()
+    for rev, vec in zip([r1,r2],[r1_vec, r2_vec]):
 
-            for word in words_list:
-                if word in all_words_dict:
-                    index_of_word = all_words_dict[word]
-                    vec.append((index_of_word, 1))
-                    if index_of_word not in dic:
-                        dic[index_of_word] = 0
-                    dic[index_of_word] += 1
+        chars_removed = pattern.sub(" ", rev)
+        words_counter = Counter(chars_removed.lower().split())
 
-    else:
-        chars_removed = pattern.sub(" ", r2)
-        words_list = chars_removed.lower().split()
-        for word in words_list:
+        for word in words_counter:
             if word in all_words_dict:
-                index_of_word = all_words_dict[word]
-                r2_vec.append((index_of_word, 1))
-                if index_of_word not in r2_dict:
-                    r2_dict[index_of_word] = 0
-                r2_dict[index_of_word] += 1
+                count = words_counter[word]
+                index_in_vector = all_words_dict[word]
+
+                vec[index_in_vector] = count
+
+    prod = r1_vec.transpose().dot(r2_vec)
+    len1 = r1_vec.transpose().dot(r1_vec).sqrt()
+    len2 = r2_vec.transpose().dot(r2_vec).sqrt()
 
 
-    prod = calc_dot_product(r1_vec, r2_dict)
-    len1 = math.sqrt(calc_dot_product(r1_vec, r1_dict))
-    len2 = math.sqrt(calc_dot_product(r2_vec, r2_dict))
+    r1_vec = csc_matrix((num_words, 1))
+    r2_vec = csc_matrix((num_words, 1))
+
+    cossim = round(float(prod/(len1*len2)), 2)
 
 
-    r2_vec = []
-    r2_dict = {}
-
-    cossim = prod/(len1*len2)
-    print(cossim)
     return cossim
-
-def calc_dot_product(vector, dic):
-    '''Given a vector and a dictionary for either two different reviews or the same review,
-    this functions returns the dot product between the two reviews
-    -Vector of the form: [(index1, count), (index2, count)]
-    -Dic of the form {index1: count, index2: count}
-
-    '''
-    dot_product = 0
-
-    for index, count in vector:
-        if index in dic:
-            dot_product += dic[index]*count
-
-    return dot_product
 
 
 # Use to get price, title, brand, etc. of a product

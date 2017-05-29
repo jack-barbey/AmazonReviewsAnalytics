@@ -2,6 +2,7 @@ import mrjob.job
 import re
 from stop_words import get_stop_words
 
+
 stop_words = set(get_stop_words('en'))
 
 # Code inspired by http://stackoverflow.com/questions/6116978/python-replace-multiple-strings
@@ -24,16 +25,16 @@ class find_all_words(mrjob.job.MRJob):
 
         for word in words_list:
             if word in stop_words: continue
-            yield word, None
+            yield word, 1
 
 
-    def combiner(self, word, _):
-        yield word, None
+    def combiner(self, word, counts):
+        yield word, sum(counts)
 
 
 
-    def reducer(self, word, _):
-        yield word, None
+    def reducer(self, word, counts):
+        yield word, sum(counts)
 
 
 if __name__ == '__main__':
