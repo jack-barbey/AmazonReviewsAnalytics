@@ -1,4 +1,4 @@
-function init_graph(csv)
+function init_graph(csv1, csv2)
 {
   var svg = d3.select("svg");
   var margin = {"top": 30, "bottom": 40, "left": 30, "right": 30};
@@ -18,8 +18,8 @@ function init_graph(csv)
           container.selectAll(".y_axis").remove()
           container.selectAll(".weight_label").remove()
           container.selectAll(".x_axis").remove()
-          console.log(1)
-          graph("0", y, x, diam, container, width, height, "% Uppercase", "Product Rank", csv)
+          console.log(0)
+          graph("0", y, x, diam, container, width, height, "% Uppercase", "Product Rank", csv1)
       })
 
   d3.select("#cat_1")
@@ -29,7 +29,7 @@ function init_graph(csv)
           container.selectAll(".weight_label").remove()
           container.selectAll(".x_axis").remove()
           console.log(1)
-          graph("0", y, x, diam, container, width, height, "Title Length", "Product Rank", csv)
+          graph("0", y, x, diam, container, width, height, "Title Length", "Product Rank", csv1)
       })
 
   d3.select("#cat_2")
@@ -39,7 +39,7 @@ function init_graph(csv)
           container.selectAll(".y_axis").remove()
           container.selectAll(".x_axis").remove()
           console.log(2)
-          graph("2", y, x, diam, container, width, height, "% Uppercase", "Overall Rating", csv)
+          graph("2", y, x, diam, container, width, height, "% Uppercase", "Overall Rating", csv1)
       })
 
   d3.select("#cat_3")
@@ -49,7 +49,7 @@ function init_graph(csv)
           container.selectAll(".y_axis").remove()
           container.selectAll(".x_axis").remove()
           console.log(3)
-          graph("3", y, x, diam, container, width, height, "Title Length", "Overall Rating", csv)
+          graph("3", y, x, diam, container, width, height, "Title Length", "Overall Rating", csv1)
       })
 
   d3.select("#cat_4")
@@ -59,7 +59,7 @@ function init_graph(csv)
           container.selectAll(".y_axis").remove()
           container.selectAll(".x_axis").remove()
           console.log(4)
-          graph("4", y, x, diam, container, width, height, "Total Votes", "Review Length", csv)
+          graph("4", y, x, diam, container, width, height, "Total Votes", "Review Length", csv2)
       })
 
   d3.select("#cat_5")
@@ -69,7 +69,7 @@ function init_graph(csv)
           container.selectAll(".y_axis").remove()
           container.selectAll(".x_axis").remove()
           console.log(5)
-          graph("5", y, x, diam, container, width, height, "Helpful Votes", "Review Length", csv)
+          graph("5", y, x, diam, container, width, height, "Helpful Votes", "Review Length", csv2)
       })
 
   d3.select("#cat_6")
@@ -79,7 +79,7 @@ function init_graph(csv)
           container.selectAll(".y_axis").remove()
           container.selectAll(".x_axis").remove()
           console.log(6)
-          graph("6", y, x, diam, container, width, height, "Price", "Stars", csv)
+          graph("6", y, x, diam, container, width, height, "Price", "Stars", csv2)
       })
 }
 
@@ -111,6 +111,8 @@ var chart = d3.csv(csv, function(data) {
     y.domain([y_extent[0] - .1 * (y_extent[1] - y_extent[0]) , y_extent[1] * 1.1]);
     diam.domain(diam_extent);
     thedata = data
+
+
 
 
     var nodes = container.selectAll(".dot").data(data)
