@@ -35,3 +35,7 @@ A dictionary mapping all words contained in the "Cell Phones and Accessories" su
 ### words_with_counts.txt ###
 
 Contains all unique words in the "Automotive" subset, as well as the number of times each word appears. Used to vocab.pkl.
+
+## Results ##
+
+![alt text](https://drive.google.com/file/d/0B86ufYOsFNe9ZTNBTzRpT1E1Q0E/view "Optional title")
