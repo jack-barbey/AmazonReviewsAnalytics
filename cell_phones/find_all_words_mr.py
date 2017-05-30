@@ -24,8 +24,8 @@ class find_all_words(mrjob.job.MRJob):
         words_list = chars_removed.lower().split()
 
         for word in words_list:
-            if word in stop_words: continue
-            yield word, 1
+            if word not in stop_words:
+                yield word, 1
 
 
     def combiner(self, word, counts):
