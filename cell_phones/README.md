@@ -36,8 +36,8 @@ A dictionary mapping all words contained in the "Cell Phones and Accessories" su
 
 Contains all unique words in the "Automotive" subset, as well as the number of times each word appears. Used to vocab.pkl.
 
-## Results ##
+## Results (example) ##
 
 One result of our analysis is that products with very similar prices appear to earn slightly more similar reviews.
 
-![Cell Phone Image](./cell_phone_image.png?raw=true "What a sad timestamp")
+![Cell Phone Image](./cell_phone_image.png?raw=true "So you DO read the optional text...")

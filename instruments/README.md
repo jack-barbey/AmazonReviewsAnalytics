@@ -15,3 +15,9 @@ An intermediate step in the attempt to create a cleaned .csv file (fast_results.
 ### job_without_cossim.py ###
 
 Contains the primary MRJob, which analyzes all possible pairs of review data and produces a .txt file. To increase efficiency, there are multiple yields within this job. Also, this job does not calculating the cosine similarity between reviews, restricting our choice of variable combinations but greatly increasing the speed and therefore the maximum feasible file size.
+
+## Results (example) ##
+
+We had hypothesized that reviews at close to the same time would be more similar (i.e. a product might be flooded by 5-star or 1-star ratings). That's evidently not the case.
+
+![Instruments Image](./instruments_image.png?raw=true "It's Easter year-round here")
