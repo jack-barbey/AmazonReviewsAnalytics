@@ -12,65 +12,184 @@ function init_graph(csv)
   var container = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-
-  d3.select("#cat_1")
+  d3.select("#cell_1")
       .on("click", function(d,i) {
           container.selectAll(".dot").remove()
           container.selectAll(".y_axis").remove()
           container.selectAll(".weight_label").remove()
           container.selectAll(".x_axis").remove()
           console.log(1)
-          graph("1", y, x, diam, container, width, height, "Similarity", "Diff Ratings", csv)
+          graph("1", y, x, diam, container, width, height, "Similarity", "Diff Stars", "cell_2000.csv")
       })
 
-  d3.select("#cat_2")
+  d3.select("#cell_2")
       .on("click", function(d,i) {
           container.selectAll(".dot").remove()
           container.selectAll(".weight_label").remove()
           container.selectAll(".y_axis").remove()
           container.selectAll(".x_axis").remove()
           console.log(2)
-          graph("2", y, x, diam, container, width, height, "Similarity", "Diff Helpful Votes", csv)
+          graph("2", y, x, diam, container, width, height, "Similarity", "Diff Helpful Votes", "cell_2000.csv")
       })
 
-  d3.select("#cat_3")
+  d3.select("#cell_3")
       .on("click", function(d,i) {
           container.selectAll(".dot").remove()
           container.selectAll(".weight_label").remove()
           container.selectAll(".y_axis").remove()
           container.selectAll(".x_axis").remove()
           console.log(3)
-          graph("3", y, x, diam, container, width, height, "Similarity", "Diff Total Votes", csv)
+          graph("3", y, x, diam, container, width, height, "Similarity", "Diff Total Votes", "cell_2000.csv")
       })
 
-  d3.select("#cat_4")
+  d3.select("#cell_4")
       .on("click", function(d,i) {
           container.selectAll(".dot").remove()
           container.selectAll(".weight_label").remove()
           container.selectAll(".y_axis").remove()
           container.selectAll(".x_axis").remove()
           console.log(4)
-          graph("4", y, x, diam, container, width, height, "Similarity", "Weeks Apart", csv)
+          graph("4", y, x, diam, container, width, height, "Similarity", "Weeks Apart", "cell_2000.csv")
       })
 
-  d3.select("#cat_5")
+  d3.select("#cell_5")
       .on("click", function(d,i) {
           container.selectAll(".dot").remove()
           container.selectAll(".weight_label").remove()
           container.selectAll(".y_axis").remove()
           container.selectAll(".x_axis").remove()
           console.log(5)
-          graph("5", y, x, diam, container, width, height, "Price Ratio (%)", "Diff Stars", csv)
+          graph("5", y, x, diam, container, width, height, "Price Ratio (%)", "Diff Stars", "cell_2000.csv")
       })
 
-  d3.select("#cat_6")
+  d3.select("#cell_6")
       .on("click", function(d,i) {
           container.selectAll(".dot").remove()
           container.selectAll(".weight_label").remove()
           container.selectAll(".y_axis").remove()
           container.selectAll(".x_axis").remove()
           console.log(6)
-          graph("6", y, x, diam, container, width, height, "Similarity", "Price Ratio (%)", csv)
+          graph("6", y, x, diam, container, width, height, "Similarity", "Price Ratio (%)", "cell_2000.csv")
+      })
+
+  d3.select("#elec_0")
+      .on("click", function(d,i) {
+          container.selectAll(".dot").remove()
+          container.selectAll(".y_axis").remove()
+          container.selectAll(".weight_label").remove()
+          container.selectAll(".x_axis").remove()
+          console.log(1)
+          graph("0", y, x, diam, container, width, height, "% Uppercase", "Product Rank", "electronics_1.csv")
+      })
+
+  d3.select("#elec_1")
+      .on("click", function(d,i) {
+          container.selectAll(".dot").remove()
+          container.selectAll(".weight_label").remove()
+          container.selectAll(".y_axis").remove()
+          container.selectAll(".x_axis").remove()
+          console.log(2)
+          graph("1", y, x, diam, container, width, height, "Title Length", "Product Rank", "electronics_1.csv")
+      })
+
+  d3.select("#elec_2")
+      .on("click", function(d,i) {
+          container.selectAll(".dot").remove()
+          container.selectAll(".weight_label").remove()
+          container.selectAll(".y_axis").remove()
+          container.selectAll(".x_axis").remove()
+          console.log(3)
+          graph("2", y, x, diam, container, width, height, "% Uppercase", "Overall Rating", "electronics_1.csv")
+      })
+
+  d3.select("#elec_3")
+      .on("click", function(d,i) {
+          container.selectAll(".dot").remove()
+          container.selectAll(".weight_label").remove()
+          container.selectAll(".y_axis").remove()
+          container.selectAll(".x_axis").remove()
+          console.log(4)
+          graph("3", y, x, diam, container, width, height, "Title Length", "Overall Rating", "electronics_1.csv")
+      })
+
+  d3.select("#elec_4")
+      .on("click", function(d,i) {
+          container.selectAll(".dot").remove()
+          container.selectAll(".weight_label").remove()
+          container.selectAll(".y_axis").remove()
+          container.selectAll(".x_axis").remove()
+          console.log(5)
+          graph("6", y, x, diam, container, width, height, "Price", "Stars", "electronics_2.csv")
+      })
+
+  d3.select("#auto_1")
+      .on("click", function(d,i) {
+          container.selectAll(".dot").remove()
+          container.selectAll(".weight_label").remove()
+          container.selectAll(".y_axis").remove()
+          container.selectAll(".x_axis").remove()
+          console.log(6)
+          graph("1", y, x, diam, container, width, height, "Similarity", "Diff Stars", "auto_1000.csv")
+      })
+
+  d3.select("#auto_2")
+      .on("click", function(d,i) {
+          container.selectAll(".dot").remove()
+          container.selectAll(".weight_label").remove()
+          container.selectAll(".y_axis").remove()
+          container.selectAll(".x_axis").remove()
+          console.log(6)
+          graph("2", y, x, diam, container, width, height, "Similarity", "Diff Helpful Votes", "auto_1000.csv")
+      })
+
+  d3.select("#auto_3")
+      .on("click", function(d,i) {
+          container.selectAll(".dot").remove()
+          container.selectAll(".weight_label").remove()
+          container.selectAll(".y_axis").remove()
+          container.selectAll(".x_axis").remove()
+          console.log(6)
+          graph("3", y, x, diam, container, width, height, "Similarity", "Diff Total Votes", "auto_1000.csv")
+      })
+
+    d3.select("#auto_4")
+        .on("click", function(d,i) {
+            container.selectAll(".dot").remove()
+            container.selectAll(".weight_label").remove()
+            container.selectAll(".y_axis").remove()
+            container.selectAll(".x_axis").remove()
+            console.log(6)
+            graph("4", y, x, diam, container, width, height, "Similarity", "Weeks Apart", "auto_1000.csv")
+        })
+
+    d3.select("#auto_5")
+        .on("click", function(d,i) {
+            container.selectAll(".dot").remove()
+            container.selectAll(".weight_label").remove()
+            container.selectAll(".y_axis").remove()
+            container.selectAll(".x_axis").remove()
+            console.log(6)
+            graph("5", y, x, diam, container, width, height, "Price Ratio (%)", "Diff Stars", "auto_1000.csv")
+        })
+
+    d3.select("#auto_6")
+      .on("click", function(d,i) {
+        container.selectAll(".dot").remove()
+        container.selectAll(".weight_label").remove()
+        container.selectAll(".y_axis").remove()
+        container.selectAll(".x_axis").remove()
+        console.log(6)
+        graph("6", y, x, diam, container, width, height, "Similarity", "Price Ratio (%)", "auto_1000.csv")
+      })
+
+    d3.select("#instrum")
+      .on("click", function(d,i) {
+        container.selectAll(".dot").remove()
+        container.selectAll(".weight_label").remove()
+        container.selectAll(".y_axis").remove()
+        container.selectAll(".x_axis").remove()
+        console.log(6)
+        graph("0", y, x, diam, container, width, height, "Days Apart", "Diff Stars", "instruments.csv")
       })
 }
 
