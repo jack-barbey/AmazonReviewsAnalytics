@@ -130,10 +130,12 @@ def create_all_tables(category, data_gz_file):
     c = db.cursor()
 
     create_products_table(c, category, data_gz_file)
-    create_product_link_table(c, category, data_gz_file, "also_bought")
-    create_product_link_table(c, category, data_gz_file, "also_viewed")
-    create_product_link_table(c, category, data_gz_file, "bought_together")
-    create_categories_table(c, category, data_gz_file)
+    # These tables turned out not to be necessary (and are very large),
+    # but would be useful for a future project with our data.
+    # create_product_link_table(c, category, data_gz_file, "also_bought")
+    # create_product_link_table(c, category, data_gz_file, "also_viewed")
+    # create_product_link_table(c, category, data_gz_file, "bought_together")
+    # create_categories_table(c, category, data_gz_file)
 
     c.close()
     db.commit()
