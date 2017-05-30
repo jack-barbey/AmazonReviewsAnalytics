@@ -4,7 +4,6 @@ import gzip
 import math
 import pickle
 import re
-from time import time
 
 
 import sqlite3
@@ -64,7 +63,7 @@ class Mega_MRJob(MRJob):
       r2_dict = {}
 
       # Re-open each time in order to start at top of file
-      self.f2 = gzip.open("cells_300_2.json.gz", "r")
+      self.f2 = gzip.open("cells_2000_2.json.gz", "r")
 
       for f2_bytes in self.f2:
         f2_line = json.loads(f2_bytes.decode())
