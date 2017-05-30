@@ -27,3 +27,13 @@ instruments/meta_Musical_Instruments.json.gz
 meta_Musical_Instruments.json.gz
 
 meta_Musical_Instruments.json.gz
+
+automotive/1000_output.txt
+
+automotive/output_rebinned.csv
+
+automotive/output.csv
+
+cell_phones/results_2000_clean.csv
+
+cell_phones/results_reversed.csv

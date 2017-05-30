@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+
+
+<head>
+  <script src="lib/d3.v4.js"></script>
+  <script type="text/javascript" src="functions.js"></script>
+</head>
+
+<body>
+
+    <div id="buttons">
+      <button id="cat_0">% Uppercase vs Product Rank</button>
+      <button id="cat_1">Title Length vs Product Rank</button>
+      <button id="cat_2">% Uppercase vs Overall Rating</button>
+      <button id="cat_3">Title Length vs Overall Rating</button>
+      <button id="cat_4">Total Votes vs Review Length</button>
+      <button id="cat_5">Helpful Votes vs Review Length</button>
+      <button id="cat_6">Price vs Stars</button>
+      <br>
+    </div>
+
+    <svg id="thevis" width="1200" height="650"></svg>
+    <script type="text/javascript">
+      init_graph("cell_2000.csv");
+    </script>
+
+
+</body>
