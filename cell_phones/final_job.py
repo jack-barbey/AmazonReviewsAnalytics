@@ -104,10 +104,10 @@ class Mega_MRJob(MRJob):
                 if price2:
                     if price1 > price2:
                         yield [5, int(100*price1/price2), overallDiff], 1
-                        yield [6, cossimReview, int(100*price1/price2)], 1
+                        yield [6, cossimReview, int(100*price2/price1)], 1
                     else:
                         yield [5, int(100*price2/price1), -overallDiff], 1
-                        yield [6, cossimReview, int(100*price2/price1)], 1
+                        yield [6, cossimReview, int(100*price1/price2)], 1
 
 
 

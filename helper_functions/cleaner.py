@@ -11,11 +11,12 @@ def clean(infile, outfile):
     '''
 
     g = open(outfile, "w")
+    g.write("category,x_var,y_var,weight\n")
 
     with open(infile, "r") as f:
         for line in f:
             new = line.replace("[", "")
-            new = new.replace("]", "")
+            new = new.replace("]\t", ", ")
             g.write(new)
 
     g.close()
