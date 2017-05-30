@@ -1,14 +1,14 @@
 from mrjob.job import MRJob
 import json
 import gzip
-import random
 import math
-import numpy as np
 import pickle
 import re
-from stop_words import get_stop_words
 from time import time
+
+
 import sqlite3
+
 
 class Mega_MRJob(MRJob):
   '''
@@ -30,16 +30,15 @@ class Mega_MRJob(MRJob):
     # make sqlite3 database available to mapper
     self.sqlite_conn = sqlite3.connect(self.options.database)
     self.c = self.sqlite_conn.cursor()
-    stop_words, num_words, all_words_dict = load_obj("all_words_dict.pkl")
-    self.stop_words = stop_words
-    self.num_words = num_words
-    self.all_words_dict = all_words_dict
+    self.num_words, self.all_words_dict = load_obj("vocab.pkl")
+
+
 
 
   def mapper(self, _, f1_str):
-    begin_mapper = time()
+
     # 1st review info from reviews file
-    f1_line = eval(f1_str) # convert string to dictionary
+    f1_line = json.loads(f1_str) # convert string to dictionary
     reviewerID1, productID1, ID1 = get_ID(f1_line)
     if ID1:
       helpfulVotes1, totalVotes1, reviewText1, overall1, summary1, \
@@ -48,22 +47,18 @@ class Mega_MRJob(MRJob):
       # 1st review's product info from metadata
       price1 = single_value_query(self.c, "price",
           "products_instruments", productID1)
-      alsoViewed1 = related_product_query(self.c, "alsoViewedID",
-          "also_viewed_instruments", productID1)
-      alsoBought1 = related_product_query(self.c, "alsoBoughtID",
-          "also_bought_instruments", productID1)
-      boughtTogether1 = related_product_query(self.c, "boughtTogetherID",
-          "bought_together_instruments", productID1)
 
-
-      # Creates the two vectors which will be filled by the review text
-      r1_vec = [0] * self.num_words
-      r2_vec = [0] * self.num_words
+      # Creates two lists of tuples that will be overwriten each time
+      r1_vec = []
+      r2_vec = []
+      r1_dict = {}
+      r2_dict = {}
 
       # Re-open each time in order to start at top of file
       self.f2 = gzip.open("instruments_very_small2.json.gz", "r")
-      for f2_str in self.f2:
-        f2_line = eval(f2_str)
+      t1 = time()
+      for f2_bytes in self.f2:
+        f2_line = json.loads(f2_bytes.decode())
         reviewerID2, productID2, ID2 = get_ID(f2_line)
         # only compare pairs once, don't compare review to itself
         if ID2:
@@ -74,19 +69,50 @@ class Mega_MRJob(MRJob):
             totalVotesDiff = diff(totalVotes1, totalVotes2)
             overallDiff = diff(overall1, overall2)
             timeGap = diff(unixReviewTime1, unixReviewTime2)
-            cossimReview = cos_dist(reviewText1, reviewText2, r1_vec, r2_vec,
-                self.stop_words, self.all_words_dict, self.num_words)
-            #cossimSummary = get_cossim(summary1, summary2)
+
+            cossimReview = round(cos_dist(reviewText1, reviewText2, r1_vec, r2_vec, r1_dict, r2_dict,
+                 self.all_words_dict, self.num_words), 2)
+
+
+
 
             # # Yield results - can be any pair of variables desired
+            # Yields difference in rating
             if None not in [cossimReview, overallDiff]:
-              yield [1, cossimReview, abs(overallDiff)], 1
-            if None not in [helpfulVotesDiff, totalVotesDiff]:
-              yield [2, helpfulVotesDiff, totalVotesDiff], 1
+                yield [1, cossimReview, abs(overallDiff)], 1
+            # Difference in helpful votes
+            if None not in [cossimReview, helpfulVotesDiff]:
+                yield [2, cossimReview, abs(helpfulVotesDiff)], 1
+            # Difference in total votes
+            if None not in [cossimReview, totalVotesDiff]:
+                yield [3, cossimReview, abs(totalVotesDiff)], 1
+            # Difference in time
+            if None not in [cossimReview, timeGap]:
+                yield [4, cossimReview, abs(timeGap)], 1
+            if price1:
+                price2 = single_value_query(self.c, "price", "products_instruments", productID2)
+                if price2:
+                    if price1 > price2:
+                        yield [5, int(100*price1/price2), overallDiff], 1
+                        yield [6, cossimReview, int(100*price1/price2)], 1
+                    else:
+                        yield [5, int(100*price2/price1), -overallDiff], 1
+                        yield [6, cossimReview, int(100*price2/price1)], 1
+
+
+
+            # interpretation: [3, 120, 2] means the product that was
+            # 20% more expensive got 2 more points overall in the review
+
 
       self.f2.close() # close, then re-open later at top of file
-      end_mapper = time()
-      # print("time elapsed (one loop):", end_mapper - begin_mapper, "seconds")
+      t2 = time()
+      print()
+      print (t2 - t1)
+      print()
+      r1_vec = []
+      r1_dict = {}
+
 
 
   def combiner(self, obs, counts):
@@ -98,7 +124,6 @@ class Mega_MRJob(MRJob):
 
 # Loads the dictionary mapping all words to an index in the vector
 def load_obj(name):
-    stop_words = set(get_stop_words('en'))
     replace_chars = {".", "?", "!", "\\", "(", ")", ",", "/", "*", "&", "#",
     ";", ":", "-", "_", "=", "@", "[", "]", "+", "$", "~", "'", '"', "`", '\\\"'}
     replace_chars = set(re.escape(k) for k in replace_chars)
@@ -110,34 +135,67 @@ def load_obj(name):
         num_words = obj[0]
         all_words_dict = obj[1]
 
-    return stop_words, num_words, all_words_dict
+    return num_words, all_words_dict
 
 
-def cos_dist(r1, r2, r1_vec, r2_vec, stop_words, all_words_dict, num_words):
+
+def cos_dist(r1, r2, r1_vec, r2_vec, r1_dict, r2_dict, all_words_dict, num_words):
     '''Computes the ln of the cosine distance given two strings of reviews'''
-    #r1 = "thiiiis tonelab snow tonight "
-    #r2 = "tonight thiiiis tonelab snow"
-    t1 = time()
-    for rev, vec in zip([r1,r2],[r1_vec, r2_vec]):
-        chars_removed = pattern.sub(" ", rev)
+
+    # Only resets review 1's vector and dictionary when mrjob moves onto the next review
+    # If r1_vec is not populated, then this is the first pass for the review 1
+    if r1_vec == []:
+        for rev, vec, dic in zip([r1,r2],[r1_vec, r2_vec], [r1_dict, r2_dict]):
+            chars_removed = pattern.sub(" ", rev)
+            words_list = chars_removed.lower().split()
+
+            for word in words_list:
+                if word in all_words_dict:
+                    index_of_word = all_words_dict[word]
+                    vec.append((index_of_word, 1))
+                    if index_of_word not in dic:
+                        dic[index_of_word] = 0
+                    dic[index_of_word] += 1
+
+    else:
+        chars_removed = pattern.sub(" ", r2)
         words_list = chars_removed.lower().split()
-
         for word in words_list:
-            if word in stop_words: continue
-            index_in_vector = all_words_dict[word]
-            vec[index_in_vector] += 1
-    t2 = time()
-    prod = np.dot(r1_vec, r2_vec)
-    t3 = time()
-    print("{} s {} s".format((t2-t1),(t3-t2)))
-    len1 = math.sqrt(np.dot(r1_vec, r1_vec))
-    len2 = math.sqrt(np.dot(r2_vec, r2_vec))
-
-    r1_vec = [0] * num_words
-    r2_vec = [0] * num_words
+            if word in all_words_dict:
+                index_of_word = all_words_dict[word]
+                r2_vec.append((index_of_word, 1))
+                if index_of_word not in r2_dict:
+                    r2_dict[index_of_word] = 0
+                r2_dict[index_of_word] += 1
 
 
-    return prod/(len1*len2)
+    prod = calc_dot_product(r1_vec, r2_dict)
+    len1 = math.sqrt(calc_dot_product(r1_vec, r1_dict))
+    len2 = math.sqrt(calc_dot_product(r2_vec, r2_dict))
+
+
+    r2_vec = []
+    r2_dict = {}
+
+    cossim = prod/(len1*len2)
+    print(cossim)
+    return cossim
+
+def calc_dot_product(vector, dic):
+    '''Given a vector and a dictionary for either two different reviews or the same review,
+    this functions returns the dot product between the two reviews
+    -Vector of the form: [(index1, count), (index2, count)]
+    -Dic of the form {index1: count, index2: count}
+
+    '''
+    dot_product = 0
+
+    for index, count in vector:
+        if index in dic:
+            dot_product += dic[index]*count
+
+    return dot_product
+
 
 # Use to get price, title, brand, etc. of a product
 def single_value_query(c, column, table, productID):
@@ -208,7 +266,5 @@ def get_attrs(f_line):
 
 
 if __name__ == '__main__':
-  begin = time()
+
   Mega_MRJob.run()
-  end = time()
-  print("time elapsed:", end - begin, "seconds")
