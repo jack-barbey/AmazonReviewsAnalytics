@@ -27,3 +27,9 @@ Contains an MRJob that transforms the output of final_job_auto.py. Specifically,
 ### words.txt ###
 
 Contains all unique words in the "Automotive" subset. Used to create all_words_dict.pkl.
+
+## Results ##
+
+In the automotive subset, it is not clear that products with very similar prices have more similar reviews than average.
+
+![Automotive Image](./automotive_image.png?raw=true "It's 6AM, I must be lonely...")
