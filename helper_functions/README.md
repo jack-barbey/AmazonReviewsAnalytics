@@ -2,7 +2,7 @@
 
 ### all_words_dict.py ###
 
-A template file to collect all unique words in a file of reviews and create a Pickle file vocab.pkl to store them for use in calculating cosine distances.
+A template file to collect all unique words in a file of reviews and create a Pickle file vocab.pkl to store them for use in calculating cosine distances. Creates a dictionary where each word from the output of find_all_words_mr.py is mapped to an integer to be used later as a vector index.
 
 ### cleaner.py ###
 
