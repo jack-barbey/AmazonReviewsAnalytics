@@ -38,4 +38,4 @@ Contains all unique words in the "Automotive" subset, as well as the number of t
 
 ## Results ##
 
-![alt text](https://drive.google.com/file/d/0B86ufYOsFNe9ZTNBTzRpT1E1Q0E/view "Optional title")
+![alt text](./cell_phone_image.png?raw=true "Optional title")
