@@ -16,4 +16,4 @@ Contains the primary MRJob, which analyzes all reviews (not pairs!) and should b
 
 One result of our analysis is that the fraction of letters in a product's title that are uppercase does not appear to affect its ratings. We had hypothesized that titles that JUMP OFF THE PAGE AT YOU would be reviewed less favorably.
 
-![Electronics Image](./cell_phone_image.png?raw=true "[insert funny joke here]")
+![Electronics Image](./electronics_image.png?raw=true "[insert funny joke here]")
