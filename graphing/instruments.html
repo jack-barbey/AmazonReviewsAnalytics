@@ -12,7 +12,18 @@
 
     <svg id="thevis" width="1200" height="650"></svg>
     <script type="text/javascript">
-      init_graph("instruments");
+      var svg = d3.select("svg");
+      var margin = {"top": 30, "bottom": 40, "left": 30, "right": 30};
+      var width = +svg.attr("width") - margin.left - margin.right;
+      var height = +svg.attr("height") - margin.top - margin.bottom;
+
+      var y = d3.scaleLinear().range([height,0]),
+          x = d3.scaleLinear().range([0,width]),
+          diam = d3.scalePow().range([0, 14]).exponent(.7);
+
+      var container = svg.append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      graph("0", y, x, diam, container, width, height, "Days Apart", "Diff in Stars", "instruments.csv")
     </script>
 
 
