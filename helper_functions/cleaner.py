@@ -1,4 +1,6 @@
+import sys
 
+# Usage: python3 cleaner.py <to_be_cleaned.csv> <cleaned.csv>
 
 def clean(infile, outfile):
     '''
@@ -19,4 +21,4 @@ def clean(infile, outfile):
     g.close()
 
 if __name__ == '__main__':
-    clean("output.csv", "cleanoutput.csv")
+    clean(sys.argv[1], sys.argv[2])
