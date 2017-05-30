@@ -1,13 +1,13 @@
 import sys
 
-# Usage: python3 cleaner.py <to_be_cleaned.csv> <cleaned.csv>
+'''
+Usage: python3 cleaner.py <to_be_cleaned.csv> <cleaned.csv>
+'''
 
 def clean(infile, outfile):
     '''
-    Removes the brackets from the csv output.
-    Change the file names in the last line to accordingly.
-
-    python3 cleaner.py
+    Removes brackets and spaces from the csv output.
+   
     '''
 
     g = open(outfile, "w")
