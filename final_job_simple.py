@@ -30,21 +30,34 @@ class Mega_MRJob(MRJob):
                 = get_attrs(f1_line)
 
             # review's product info from metadata
+
             price1 = single_value_query(self.c, "price",
-                "products_books", productID1)
+                "products_electronics", productID1)
+            # Keep only two significant digits to enhance binning
+            if price1:
+                price1 = int(price1)
+                if price1 > 100:
+                    price1 = (price1//10) * 10
+                if price1 > 1000:
+                    price1 = (price1//100) * 100 
             title1 = single_value_query(self.c, "title",
-                "products_books", productID1)
+                "products_electronics", productID1)
             if title1:
                 title1_length = len(re.findall("\w+", title1))
-                pct_upper1_long = min(len(re.findall("[A-Z]", title1)) /
-                    len(re.findall("[a-zA-Z]", title1)), 1)
-                pct_upper1 = int(pct_upper1_long * 100) / 100.0
+                pct_upper1_long = len(re.findall("[A-Z]", title1)) / \
+                    (len(re.findall("[a-zA-Z]", title1)) + .00001)
+                pct_upper1 = int(pct_upper1_long * 100)
             rank1 = single_value_query(self.c, "salesRank",
-                "products_books", productID1)
+                "products_electronics", productID1)
             reviewLen1 = len(reviewText1)
+            # Keep only two significant digits to enhance binning
+            if reviewLen1 > 100:
+                reviewLen1 = (reviewLen1//10)*10
+            if reviewLen1 > 1000:
+                reviewLen1 = (reviewLen1//100)*100
 
             if title1:
-                if (rank1 and (rank1 <= 250)):
+                if (rank1 and (rank1 <= 100)):
                     yield [0, pct_upper1, rank1], 1
                     yield [1, title1_length, rank1], 1
                 yield [2, pct_upper1, overall1], 1               
@@ -52,11 +65,8 @@ class Mega_MRJob(MRJob):
 
             yield [4, totalVotes1, reviewLen1], 1
             yield [5, helpfulVotes1, reviewLen1], 1
-
-            yield[6, price1, totalVotes1], 1
-            yield[7, price1, overall1], 1
-
-
+            if price1:
+                yield[6, price1, overall1], 1
 
     def combiner(self, obs, counts):
         yield obs, sum(counts)
