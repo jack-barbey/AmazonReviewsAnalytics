@@ -38,4 +38,6 @@ Contains all unique words in the "Automotive" subset, as well as the number of t
 
 ## Results ##
 
-![alt text](./cell_phone_image.png?raw=true "Optional title")
+One result of our analysis is that products with very similar prices appear to earn slightly more similar reviews.
+
+![Cell Phone Image](./cell_phone_image.png?raw=true "What a sad timestamp")
