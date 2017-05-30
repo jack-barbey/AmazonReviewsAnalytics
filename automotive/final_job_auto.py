@@ -148,12 +148,12 @@ def cos_dist(r1, r2, r1_vec, r2_vec, r1_dict, r2_dict, stop_words, all_words_dic
         words_list = chars_removed.lower().split()
 
         for word in words_list:
-            if word in stop_words: continue
-            index_of_word = all_words_dict[word]
-            vec.append((index_of_word, 1))
-            if index_of_word not in dic:
-                dic[index_of_word] = 0
-            dic[index_of_word] += 1
+            if word not in stop_words:
+                index_of_word = all_words_dict[word]
+                vec.append((index_of_word, 1))
+                if index_of_word not in dic:
+                    dic[index_of_word] = 0
+                dic[index_of_word] += 1
 
     prod = calc_dot_product(r1_vec, r2_dict)
     len1 = math.sqrt(calc_dot_product(r1_vec, r1_dict))
